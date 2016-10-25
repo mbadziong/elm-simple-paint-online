@@ -43,7 +43,7 @@ view model =
             rect (toFloat 300) (toFloat 300)
                 |> filled green
     in
-        collage 300 300 [ background, ball ]
+        collage 300 300 [ background, (drawLine model.points) ]
             |> Element.toHtml
 
 
@@ -89,4 +89,4 @@ update msg model =
 
 mouse : Mouse.Position -> Model -> Model
 mouse position model =
-    { model | y = position.y, x = position.x, points = ( position.x, position.y ) :: model.points }
+    { model | y = position.y, x = position.x, points = ( position.x - floor (300 / 2), floor (300 / 2) - position.y ) :: model.points }
