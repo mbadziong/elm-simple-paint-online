@@ -11,6 +11,7 @@ import Mouse exposing (..)
 type alias Model =
     { lines : List Line
     , currentLine : Line
+    , isDrawing : Bool
     , x : Int
     , y : Int
     , windowWidth : Int
@@ -27,13 +28,16 @@ type alias Point =
 
 
 type Msg
-    = MouseMsg Mouse.Position
+    = DrawStart Mouse.Position
+    | DrawStop Mouse.Position
+    | MouseMsg Mouse.Position
 
 
 initialModel : Model
 initialModel =
     { lines = []
     , currentLine = []
+    , isDrawing = False
     , x = 0
     , y = 0
     , windowWidth = 300
@@ -82,14 +86,32 @@ main =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Mouse.moves MouseMsg
+    Sub.batch
+        [ Mouse.downs DrawStart
+        , Mouse.moves MouseMsg
+        , Mouse.ups DrawStop
+        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        DrawStart _ ->
+            ( { model | isDrawing = True }, Cmd.none )
+
+        DrawStop _ ->
+            ( { model | isDrawing = False }, Cmd.none )
+
         MouseMsg position ->
-            ( mouse position model, Cmd.none )
+            ( isDrawing position model, Cmd.none )
+
+
+isDrawing : Mouse.Position -> Model -> Model
+isDrawing position model =
+    if model.isDrawing then
+        mouse position model
+    else
+        model
 
 
 mouse : Mouse.Position -> Model -> Model
