@@ -9,10 +9,17 @@ import Mouse exposing (..)
 
 
 type alias Model =
-    { points : List Point
+    { lines : List Line
+    , currentLine : Line
     , x : Int
     , y : Int
+    , windowWidth : Int
+    , windowHeight : Int
     }
+
+
+type alias Line =
+    List Point
 
 
 type alias Point =
@@ -25,25 +32,23 @@ type Msg
 
 initialModel : Model
 initialModel =
-    { points = []
+    { lines = []
+    , currentLine = []
     , x = 0
     , y = 0
+    , windowWidth = 300
+    , windowHeight = 300
     }
 
 
 view : Model -> Html Msg
 view model =
     let
-        ball =
-            circle 10
-                |> filled blue
-                |> move ( toFloat (model.x - 150), toFloat (150 - model.y) )
-
         background =
-            rect (toFloat 300) (toFloat 300)
+            rect (toFloat model.windowWidth) (toFloat model.windowHeight)
                 |> filled green
     in
-        collage 300 300 [ background, (drawLine model.points) ]
+        collage model.windowWidth model.windowHeight [ background, (drawLine model.currentLine) ]
             |> Element.toHtml
 
 
@@ -89,4 +94,4 @@ update msg model =
 
 mouse : Mouse.Position -> Model -> Model
 mouse position model =
-    { model | y = position.y, x = position.x, points = ( position.x - floor (300 / 2), floor (300 / 2) - position.y ) :: model.points }
+    { model | y = position.y, x = position.x, currentLine = ( position.x - (model.windowWidth // 2), (model.windowHeight // 2) - position.y ) :: model.currentLine }
