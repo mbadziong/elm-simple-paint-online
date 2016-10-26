@@ -4,6 +4,7 @@ import Color exposing (..)
 import Collage exposing (..)
 import Element exposing (..)
 import Html exposing (Html, div, text)
+import Html.Attributes exposing (..)
 import Html.App as App
 import Mouse exposing (..)
 
@@ -50,10 +51,26 @@ view model =
     let
         background =
             rect (toFloat model.windowWidth) (toFloat model.windowHeight)
-                |> filled green
+                |> filled white
+
+        createdLines =
+            (drawLines model.lines)
+
+        allElements =
+            (List.append (background :: [ drawLine model.currentLine ]) createdLines)
     in
-        collage model.windowWidth model.windowHeight [ background, (drawLine model.currentLine) ]
-            |> Element.toHtml
+        div [ Html.Attributes.style [ ( "border-style", "solid" ), ( "display", "inline-block" ) ] ]
+            [ collage
+                model.windowWidth
+                model.windowHeight
+                allElements
+                |> Element.toHtml
+            ]
+
+
+drawLines : List Line -> List Form
+drawLines lines =
+    List.map drawLine lines
 
 
 drawLine : List Point -> Form
@@ -97,13 +114,18 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         DrawStart _ ->
-            ( { model | isDrawing = True }, Cmd.none )
+            ( { model | isDrawing = True, currentLine = [] }, Cmd.none )
 
         DrawStop _ ->
-            ( { model | isDrawing = False }, Cmd.none )
+            ( saveLine model, Cmd.none )
 
         MouseMsg position ->
             ( isDrawing position model, Cmd.none )
+
+
+saveLine : Model -> Model
+saveLine model =
+    { model | y = 0, x = 0, lines = model.currentLine :: model.lines, isDrawing = False }
 
 
 isDrawing : Mouse.Position -> Model -> Model
