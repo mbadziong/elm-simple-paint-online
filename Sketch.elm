@@ -3,9 +3,10 @@ module Sketch exposing (..)
 import Color exposing (..)
 import Collage exposing (..)
 import Element exposing (..)
-import Html exposing (Html, div, text)
+import Html exposing (Html, div, text, button, br)
 import Html.Attributes exposing (..)
 import Html.App as App
+import Html.Events exposing (onClick)
 import Mouse exposing (..)
 
 
@@ -17,6 +18,7 @@ type alias Model =
     , y : Int
     , windowWidth : Int
     , windowHeight : Int
+    , lineColor : Color
     }
 
 
@@ -32,6 +34,7 @@ type Msg
     = DrawStart Mouse.Position
     | DrawStop Mouse.Position
     | MouseMsg Mouse.Position
+    | ChangeColor Color
 
 
 initialModel : Model
@@ -43,6 +46,7 @@ initialModel =
     , y = 0
     , windowWidth = 300
     , windowHeight = 300
+    , lineColor = Color.red
     }
 
 
@@ -54,27 +58,32 @@ view model =
                 |> filled white
 
         createdLines =
-            (drawLines model.lines)
+            (drawLines model.lines model.lineColor)
 
         allElements =
-            (List.append (background :: [ drawLine model.currentLine ]) createdLines)
+            (List.append (background :: [ drawLine model.lineColor model.currentLine ]) createdLines)
     in
-        div [ Html.Attributes.style [ ( "border-style", "solid" ), ( "display", "inline-block" ) ] ]
-            [ collage
-                model.windowWidth
-                model.windowHeight
-                allElements
-                |> Element.toHtml
+        div []
+            [ div [ Html.Attributes.style [ ( "border-style", "solid" ), ( "display", "inline-block" ) ] ]
+                [ collage
+                    model.windowWidth
+                    model.windowHeight
+                    allElements
+                    |> Element.toHtml
+                ]
+            , br [] []
+            , button [ onClick (ChangeColor red) ] [ Html.text "red" ]
+            , button [ onClick (ChangeColor blue) ] [ Html.text "blue" ]
             ]
 
 
-drawLines : List Line -> List Form
-drawLines lines =
-    List.map drawLine lines
+drawLines : List Line -> Color -> List Form
+drawLines lines lineColor =
+    List.map (drawLine lineColor) lines
 
 
-drawLine : List Point -> Form
-drawLine points =
+drawLine : Color -> List Point -> Form
+drawLine lineColor points =
     let
         -- Our points are integers, but a path needs a list of floats.  We'll make a
         -- function to turn a 2-tuple of ints into a 2-tuple of floats
@@ -88,7 +97,7 @@ drawLine points =
     in
         -- Finally, we'll trace that list of points in solid red
         shape
-            |> traced (solid red)
+            |> traced (solid lineColor)
 
 
 main : Program Never
@@ -121,6 +130,9 @@ update msg model =
 
         MouseMsg position ->
             ( isDrawing position model, Cmd.none )
+
+        ChangeColor color ->
+            ( { model | lineColor = color }, Cmd.none )
 
 
 saveLine : Model -> Model
