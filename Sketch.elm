@@ -87,17 +87,13 @@ drawLines lines =
 drawLine : Line -> Form
 drawLine line =
     let
-        -- Our points are integers, but a path needs a list of floats.  We'll make a
-        -- function to turn a 2-tuple of ints into a 2-tuple of floats
         intsToFloats : ( Int, Int ) -> ( Float, Float )
         intsToFloats ( x, y ) =
             ( toFloat x, toFloat y )
 
-        -- Then we'll map our points across that function
         shape =
             path (List.map intsToFloats line.points)
     in
-        -- Finally, we'll trace that list of points in solid red
         shape
             |> traced (solid line.lineColor)
 
@@ -145,13 +141,13 @@ saveLine model =
 isDrawing : Mouse.Position -> Model -> Model
 isDrawing position model =
     if model.isDrawing then
-        mouse position model
+        appendPointToLine position model
     else
         model
 
 
-mouse : Mouse.Position -> Model -> Model
-mouse position model =
+appendPointToLine : Mouse.Position -> Model -> Model
+appendPointToLine position model =
     let
         newX =
             position.x
