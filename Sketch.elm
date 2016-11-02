@@ -10,8 +10,8 @@ import Html.Events exposing (onClick)
 import Mouse exposing (..)
 import WebSocket
 import Task
-import ColorUtils exposing (colorToString, stringToColor, decodedColors)
-import Line exposing (Line, encodedLine)
+import Json.Decode exposing (decodeString)
+import Line exposing (Line, encodedLine, linesDecoder)
 
 
 type alias Model =
@@ -77,6 +77,7 @@ view model =
             , br [] []
             , button [ onClick (ChangeColor red) ] [ Html.text "red" ]
             , button [ onClick (ChangeColor blue) ] [ Html.text "blue" ]
+            , button [ onClick (ChangeColor black) ] [ Html.text "black" ]
             ]
 
 
@@ -149,15 +150,10 @@ update msg model =
             in
                 ( model, WebSocket.send websocketUrl stringifiedLine )
 
-        NewMessage str ->
-            case (decodedColors str) of
-                Ok colors ->
-                    let
-                        trueColors =
-                            List.map stringToColor colors
-                    in
-                        Debug.log (toString trueColors)
-                            ( model, Cmd.none )
+        NewMessage stringifiedLine ->
+            case (decodeString linesDecoder stringifiedLine) of
+                Ok lines ->
+                    ( { model | lines = lines }, Cmd.none )
 
                 Err err ->
                     Debug.log err

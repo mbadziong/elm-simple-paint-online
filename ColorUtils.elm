@@ -1,6 +1,6 @@
-module ColorUtils exposing (colorToString, stringToColor, decodedColors)
+module ColorUtils exposing (colorToString, colorDecoder)
 
-import Json.Decode exposing (Decoder, decodeString, list, string)
+import Json.Decode exposing (Decoder, decodeString, list, string, andThen, succeed, fail)
 import Color exposing (Color, black, red, blue)
 
 
@@ -16,25 +16,18 @@ colorToString col =
         "black"
 
 
-stringToColor : String -> Color
-stringToColor str =
+stringToColorDecoder : String -> Decoder Color
+stringToColorDecoder str =
     if str == "black" then
-        black
+        succeed black
     else if str == "red" then
-        red
+        succeed red
     else if str == "blue" then
-        blue
+        succeed blue
     else
-        black
+        fail "Error"
 
 
-decodedColors : String -> Result String (List String)
-decodedColors colors =
-    decodeString
-        colorsDecoder
-        colors
-
-
-colorsDecoder : Decoder (List String)
-colorsDecoder =
-    Json.Decode.list Json.Decode.string
+colorDecoder : Decoder Color
+colorDecoder =
+    Json.Decode.string `andThen` stringToColorDecoder

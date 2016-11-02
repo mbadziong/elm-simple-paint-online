@@ -1,7 +1,7 @@
-module Line exposing (Line, encodedLine)
+module Line exposing (Line, encodedLine, linesDecoder)
 
 import Color exposing (Color)
-import ColorUtils exposing (colorToString, stringToColor, decodedColors)
+import ColorUtils exposing (colorToString, colorDecoder)
 import Json.Encode exposing (list, string, object, encode, int)
 import Json.Decode exposing (object2, (:=), Decoder, andThen)
 import Tuple exposing (tuple2Encoder, pointDecoder)
@@ -42,9 +42,13 @@ encodedLine line =
         entireMessage
 
 
+lineDecoder : Decoder Line
+lineDecoder =
+    object2 Line
+        ("points" := Json.Decode.list pointDecoder)
+        ("lineColor" := colorDecoder)
 
--- lineDecoder : Decoder Line
--- lineDecoder =
---     object2 Line
---         ("lineColor" := string `andThen` stringToColor)
---         ("points" := list pointDecoder)
+
+linesDecoder : Decoder (List Line)
+linesDecoder =
+    Json.Decode.list lineDecoder
