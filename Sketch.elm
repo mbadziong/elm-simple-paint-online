@@ -1,6 +1,6 @@
 module Sketch exposing (..)
 
-import Color exposing (..)
+import Color exposing (Color, black, red, blue, white)
 import Collage exposing (..)
 import Element exposing (..)
 import Html exposing (Html, div, text, button, br)
@@ -8,6 +8,10 @@ import Html.Attributes exposing (..)
 import Html.App as App
 import Html.Events exposing (onClick)
 import Mouse exposing (..)
+import WebSocket
+import Task
+import Json.Encode exposing (..)
+import ColorUtils exposing (colorToString, stringToColor, decodedColors)
 
 
 type alias Model =
@@ -37,6 +41,13 @@ type Msg
     | DrawStop Mouse.Position
     | MouseMsg Mouse.Position
     | ChangeColor Color
+    | NewMessage String
+    | SendWsMessage
+
+
+websocketUrl : String
+websocketUrl =
+    "ws://localhost:1234/test"
 
 
 initialModel : Model
@@ -114,6 +125,7 @@ subscriptions model =
         [ Mouse.downs DrawStart
         , Mouse.moves MouseMsg
         , Mouse.ups DrawStop
+        , WebSocket.listen websocketUrl NewMessage
         ]
 
 
@@ -124,13 +136,45 @@ update msg model =
             ( { model | isDrawing = True, currentLine = (Line [] model.selectedColor) }, Cmd.none )
 
         DrawStop _ ->
-            ( saveLine model, Cmd.none )
+            ( saveLine model, msgToCmd SendWsMessage )
 
         MouseMsg position ->
             ( isDrawing position model, Cmd.none )
 
         ChangeColor col ->
             ( { model | selectedColor = col }, Cmd.none )
+
+        SendWsMessage ->
+            let
+                latestLine =
+                    case List.head model.lines of
+                        Nothing ->
+                            black
+
+                        Just val ->
+                            val.lineColor
+
+                message =
+                    colorToString latestLine
+            in
+                ( model, WebSocket.send websocketUrl message )
+
+        NewMessage str ->
+            case (decodedColors str) of
+                Ok colors ->
+                    let
+                        trueColors =
+                            List.map stringToColor colors
+                    in
+                        Debug.log (toString trueColors)
+                            ( model, Cmd.none )
+
+                Err err ->
+                    ( model, Cmd.none )
+
+
+msgToCmd msg =
+    Task.perform (always msg) (always msg) (Task.succeed ())
 
 
 saveLine : Model -> Model
