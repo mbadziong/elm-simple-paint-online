@@ -1,12 +1,38 @@
-# elm-simple-paint-online
+# Simple shareable paint in ELM
 
-install elm, npm
+## Setup guide
 
-run websocket server:
-cd backend
+### Download Node and it's libraries
+```
+curl -sL https://deb.nodesource.com/setup_6.x | -E bash -
+```
+```
+sudo apt-get install nodejs
+```
+### Install ELM
+```
+npm install -g elm
+```
+
+### Download repo
+Switch to backend folder, type
+```
+npm install
+```
+
+### Run apps 
+Open backend folder and type
+```
 npm start
-
-run elm app:
+```  
+Then go to root repo folder and type
+```
 elm reactor
+```
 
-open browsers, enter http://localhost:8000/Sketch.elm and give it a try
+### Give it a try
+open few browser windows and enter url 
+```
+http://localhost:8000/Sketch.elm
+```
+
