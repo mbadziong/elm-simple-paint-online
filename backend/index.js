@@ -15,7 +15,8 @@ app.ws('/test', function(websocket, request) {
   console.log('A client connected!');
 
   websocket.on('message', function(message) {
-    lines.push(message);
+    var line = JSON.parse(message);
+    lines.push(line);
     aWss.clients.forEach(function (client) {
       client.send(JSON.stringify(lines));
     });

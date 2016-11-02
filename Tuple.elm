@@ -1,4 +1,4 @@
-module Tuple exposing (tuple2Encoder)
+module Tuple exposing (tuple2Encoder, pointDecoder)
 
 import Json.Encode exposing (list, Value)
 import Json.Decode exposing (Decoder, tuple2, int)

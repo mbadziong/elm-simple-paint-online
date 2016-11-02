@@ -10,10 +10,8 @@ import Html.Events exposing (onClick)
 import Mouse exposing (..)
 import WebSocket
 import Task
-import Json.Encode exposing (list, string, object)
-import Json.Decode exposing (int)
 import ColorUtils exposing (colorToString, stringToColor, decodedColors)
-import Tuple exposing (tuple2Encoder)
+import Line exposing (Line, encodedLine)
 
 
 type alias Model =
@@ -26,16 +24,6 @@ type alias Model =
     , windowHeight : Int
     , selectedColor : Color
     }
-
-
-type alias Line =
-    { points : List Point
-    , lineColor : Color
-    }
-
-
-type alias Point =
-    ( Int, Int )
 
 
 type Msg
@@ -156,19 +144,10 @@ update msg model =
                         Just val ->
                             val
 
-                lineColor =
-                    colorToString latestLine.lineColor
-
-                points =
-                    latestLine.points
-
-                entireMessage =
-                    object
-                        [ ( "lineColor", Json.Encode.string lineColor )
-                        , ( "points", Json.Encode.list (List.map (tuple2Encoder Json.Encode.int Json.Encode.int) points) )
-                        ]
+                stringifiedLine =
+                    encodedLine latestLine
             in
-                ( model, WebSocket.send websocketUrl (toString entireMessage) )
+                ( model, WebSocket.send websocketUrl stringifiedLine )
 
         NewMessage str ->
             case (decodedColors str) of
