@@ -31,8 +31,10 @@ type Msg
     | DrawStop Mouse.Position
     | MouseMsg Mouse.Position
     | ChangeColor Color
+    | ClearCollage
     | NewMessage String
-    | SendWsMessage
+    | SendNewLine
+    | SendClear
 
 
 websocketUrl : String
@@ -78,6 +80,7 @@ view model =
             , button [ onClick (ChangeColor red) ] [ Html.text "red" ]
             , button [ onClick (ChangeColor blue) ] [ Html.text "blue" ]
             , button [ onClick (ChangeColor black) ] [ Html.text "black" ]
+            , button [ onClick (ClearCollage) ] [ Html.text "clear" ]
             ]
 
 
@@ -127,7 +130,7 @@ update msg model =
             { model | isDrawing = True, currentLine = (Line [] model.selectedColor) } ! []
 
         DrawStop _ ->
-            saveLine model ! [ msgToCmd SendWsMessage ]
+            saveLine model ! [ msgToCmd SendNewLine ]
 
         MouseMsg position ->
             isDrawing position model ! []
@@ -135,7 +138,17 @@ update msg model =
         ChangeColor col ->
             { model | selectedColor = col } ! []
 
-        SendWsMessage ->
+        ClearCollage ->
+            model ! [ msgToCmd SendClear ]
+
+        SendClear ->
+            let
+                message =
+                    "{\"clear\": true}"
+            in
+                model ! [ WebSocket.send websocketUrl message ]
+
+        SendNewLine ->
             let
                 latestLine =
                     case List.head model.lines of
