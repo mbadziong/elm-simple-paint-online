@@ -124,16 +124,16 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         DrawStart _ ->
-            ( { model | isDrawing = True, currentLine = (Line [] model.selectedColor) }, Cmd.none )
+            { model | isDrawing = True, currentLine = (Line [] model.selectedColor) } ! []
 
         DrawStop _ ->
-            ( saveLine model, msgToCmd SendWsMessage )
+            saveLine model ! [ msgToCmd SendWsMessage ]
 
         MouseMsg position ->
-            ( isDrawing position model, Cmd.none )
+            isDrawing position model ! []
 
         ChangeColor col ->
-            ( { model | selectedColor = col }, Cmd.none )
+            { model | selectedColor = col } ! []
 
         SendWsMessage ->
             let
@@ -148,16 +148,17 @@ update msg model =
                 stringifiedLine =
                     encodedLine latestLine
             in
-                ( model, WebSocket.send websocketUrl stringifiedLine )
+                model ! [ WebSocket.send websocketUrl stringifiedLine ]
 
         NewMessage stringifiedLine ->
             case (decodeString linesDecoder stringifiedLine) of
                 Ok lines ->
-                    ( { model | lines = lines }, Cmd.none )
+                    { model | lines = lines } ! []
 
                 Err err ->
                     Debug.log err
-                        ( model, Cmd.none )
+                        model
+                        ! []
 
 
 msgToCmd msg =

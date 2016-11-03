@@ -2,30 +2,22 @@ module ColorUtils exposing (colorToString, colorDecoder)
 
 import Json.Decode exposing (Decoder, decodeString, list, string, andThen, succeed, fail)
 import Color exposing (Color, black, red, blue)
+import Color.Convert exposing (colorToHex, hexToColor)
 
 
 colorToString : Color -> String
-colorToString col =
-    if col == black then
-        "black"
-    else if col == red then
-        "red"
-    else if col == blue then
-        "blue"
-    else
-        "black"
+colorToString color =
+    colorToHex (color)
 
 
 stringToColorDecoder : String -> Decoder Color
-stringToColorDecoder str =
-    if str == "black" then
-        succeed black
-    else if str == "red" then
-        succeed red
-    else if str == "blue" then
-        succeed blue
-    else
-        fail "Error"
+stringToColorDecoder hex =
+    case hexToColor hex of
+        Just color ->
+            succeed color
+
+        Nothing ->
+            fail ("Cannot decode color " ++ hex)
 
 
 colorDecoder : Decoder Color
